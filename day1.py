@@ -45,14 +45,28 @@ def task1(list1: list, list2: list) -> int:
 
     return total
 
+@njit(['int32(int32[:], int32[:])'])
+def task2(list1: list, list2: list) -> int:
+    total: int = 0
+    assert len(list1) == len(list2)
+    list_length: int = len(list1)
+    min1: int
+    min2: int
+    for _ in range(list_length):
+        min1, list1 = np_pop_min(list1)
+        repetitions = len(np.where(list2 == min1)[0])
+        total += min1 * repetitions
+
+    return total
 
 def main() -> int:
     list1, list2 = load_files()
     list1_arr = np.array(list1)
     list2_arr = np.array(list2)
     out1 = task1(list1_arr, list2_arr)
+    out2 = task2(list1_arr, list2_arr)
 
-    return out1
+    return out1, out2
 
 if __name__ == "__main__":
     print(main())
