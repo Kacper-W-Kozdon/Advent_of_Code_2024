@@ -35,6 +35,18 @@ def test_function2(arr: list):
         print(elem)
     return arr
 
+def report(report: np.array, output: np.array):
+    def test(entry1: np.array, entry2: np.array):
+        return abs(entry2 - entry1) <= 3
+
+    for entry_id, entry in enumerate(report):
+        print(np.prod(entry))
+        output.append([np.prod(np.array(list(map(test, entry[:-1], entry[1:]))))])
+    
+    return output
+
+reportarr = np.array([np.array([1, 4, 8])])
+
 print("---TEST---")
-result = test_function(arr)
+result = report(reportarr, [])
 print(result)
