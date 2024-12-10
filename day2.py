@@ -1,6 +1,7 @@
 from numba import jit, int32, guvectorize, vectorize, njit, boolean, types, uint8
 from numba.typed import List
 import numpy as np
+import numba as nb
 
 def load_files():
     fContent1 = []
@@ -14,29 +15,27 @@ def load_files():
 
     return(fContent1)
 
-@guvectorize(["void(int32[:,:], int64[:])"], "(m, n)->()")
-def task1(report: np.array, output: np.array):
+@njit(["int64(int32[:,:])"])
+def task1(report: np.array):
 
     def test1(entry1: np.array, entry2: np.array):
-        return int(1 <= abs(np.int32(entry2) - np.int32(entry1)) <= 3)
+        return (1 <= np.abs(entry2 - entry1) <= 3).astype(np.int32)
     
-    for entry_id, entry in enumerate(report):
-        entry_comparator = sorted(list(set(list(entry))))
-        test2 = int(list(entry) ==  entry_comparator or list(entry) == sorted(entry_comparator, reverse=True))
-        output[entry_id] = np.prod(np.array(list(map(test1, entry[:-1], entry[1:])))) * test2
+    entry_comparator = sorted(list(map(np.unique, report)))
+    test2 = int(list(report) ==  entry_comparator or list(report) == sorted(entry_comparator, reverse=True))
+    output = np.prod(np.array(list(map(test1, report[:-1], report[1:])))) * test2
+    return output
 
 
-@jit(["(int32[:])(int32[:])"])
+@njit(["int32(int32[:])"])
 def test1(entry: np.array):
-    res = np.zeros(1, dtype=np.int32)
-    task1([entry], res)
-    return res
+    return task1([entry])
 
-@guvectorize(["void(int32[:], int64[:])"], "(m)->()")
-def task2(report: np.array, output: np.array):
-
+@njit(["int64(int32[:])"])
+def task2(report: np.array):
+    out = 0
     def test2(entry1: np.array, entry2: np.array):
-        return int(1 <= abs(np.int32(entry2) - np.int32(entry1)) <= 3) * np.sign(np.int32(entry2) - np.int32(entry1))
+        return (1 <= np.absolute(entry2 - entry1) <= 3) * np.sign(np.int32(entry2) - np.int32(entry1)).astype(np.int32)
     
     def test3(test_array: np.array):
         condition1 = (test_array == 0).astype(np.int32)
@@ -56,7 +55,7 @@ def task2(report: np.array, output: np.array):
         out = test1(subtest_array1) or test1(subtest_array2)
 
 
-    output[0] = out
+    return out
 
 
 def main():
@@ -64,8 +63,8 @@ def main():
         report = np.array(load_files(), dtype=np.int32)
     except:
         report = np.array(load_files(), dtype=object)
-    out1 = np.sum([task1([entry]) for entry in report])
-    out2 = np.sum([task2(entry) if task1([entry]) == 0 else 0 for entry in report])
+    out1 = np.sum([task1(entry) for entry in report])
+    out2 = np.sum([task2(entry) if task1(entry) == 0 else 0 for entry in report])
 
     return out1, out2
 
