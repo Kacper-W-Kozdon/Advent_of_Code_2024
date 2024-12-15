@@ -1,4 +1,4 @@
-from numba import jit, int32, guvectorize, vectorize, njit, boolean, types, uint8
+from numba import jit, int32, guvectorize, vectorize, njit, boolean, types, uint8, int64
 from numba.typed import List
 import numpy as np
 import numba as nb
@@ -15,19 +15,19 @@ def load_files():
 
     return(fContent1)
 
-@njit(["int64(int32[:,:])"])
+@njit("int64(int32[:])")
 def task1(report: np.array):
 
     def test1(entry1: np.array, entry2: np.array):
         return 1 * (1 <= np.abs(entry2 - entry1) <= 3)
 
-    entry_comparator = sorted(list(map(np.unique, report)))
+    entry_comparator = sorted(list(np.unique(report)))
     test2 = int(list(report) == entry_comparator or list(report) == sorted(entry_comparator, reverse=True))
 
     test_map = np.empty_like(report, dtype=np.int64)
     mapped_list = list(map(test1, report[:-1], report[1:]))
 
-    for entry_id in range(len(mapped_list)):
+    for entry_id, _ in enumerate(mapped_list):
         test_map[entry_id] = mapped_list[entry_id]
 
     output = np.prod(test_map) * test2
@@ -36,7 +36,7 @@ def task1(report: np.array):
 
 @njit(["int32(int32[:])"])
 def test1(entry: np.array):
-    return task1([entry])
+    return task1(entry)
 
 @njit(["int64(int32[:])"])
 def task2(report: np.array):
