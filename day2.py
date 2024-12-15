@@ -19,11 +19,18 @@ def load_files():
 def task1(report: np.array):
 
     def test1(entry1: np.array, entry2: np.array):
-        return (1 <= np.abs(entry2 - entry1) <= 3).astype(np.int32)
-    
+        return 1 * (1 <= np.abs(entry2 - entry1) <= 3)
+
     entry_comparator = sorted(list(map(np.unique, report)))
     test2 = int(list(report) ==  entry_comparator or list(report) == sorted(entry_comparator, reverse=True))
-    output = np.prod(np.array(list(map(test1, report[:-1], report[1:])))) * test2
+
+    test_map = np.empty_like(report, dtype=np.int64)
+    mapped_list = list(map(test1, report[:-1], report[1:]))
+
+    for entry_id, entry in enumerate(report):
+        test_map[entry_id] = mapped_list[entry_id]
+
+    output = np.prod(test_map) * test2
     return output
 
 
