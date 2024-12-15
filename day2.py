@@ -41,8 +41,12 @@ def test1(entry: np.array):
 @njit(["int64(int32[:])"])
 def task2(report: np.array):
     out = 0
-    def test2(entry1: np.array, entry2: np.array):
-        return (1 <= np.absolute(entry2 - entry1) <= 3) * np.sign(np.int32(entry2) - np.int32(entry1)).astype(np.int32)
+    test_array = np.empty_like(report)
+    subtest_array1 = np.empty_like(report)
+    subtest_array2 = np.empty_like(report)
+
+    def test2(entry1: np.int32, entry2: np.int32):
+        return (1 <= np.absolute(entry2 - entry1) <= 3) * np.sign(np.int32(entry2) - np.int32(entry1))
     
     def test3(test_array: np.array):
         condition1 = (test_array == 0).astype(np.int32)
@@ -53,14 +57,18 @@ def task2(report: np.array):
 
 
 
-    test_array = np.array(list(map(test2, report[:-1], report[1:])))
+    test_map = list(map(test2, report[:-1], report[1:]))
 
-    if not (index := int(test3(test_array))) is None:
+    for entry_id, _ in enumerate(test_map):
+        test_array[entry_id] = test_map[entry_id]
+
+    index = int(test3(test_array))
+
+    if not (index is None):  # ERROR IN THIS FLOW CONTROL
         subtest_array1 = np.delete(test_array, index).astype(int32)
         subtest_array2 = np.delete(test_array, index + 1).astype(int32)
 
         out = test1(subtest_array1) or test1(subtest_array2)
-
 
     return out
 
@@ -70,8 +78,10 @@ def main():
         report = np.array(load_files(), dtype=np.int32)
     except:
         report = np.array(load_files(), dtype=object)
+
     out1 = np.sum([task1(entry) for entry in report])
-    out2 = np.sum([task2(entry) if task1(entry) == 0 else 0 for entry in report])
+
+    out2 = np.sum([0 if task1(entry) != 0 else task2(entry) for entry in report])
 
     return out1, out2
 
