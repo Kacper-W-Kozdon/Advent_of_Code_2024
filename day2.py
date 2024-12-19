@@ -6,7 +6,7 @@ import numba as nb
 def load_files():
     fContent1 = []
 
-    with open("testinput2.txt") as f:
+    with open("input2.txt") as f:
 
         for (lineIndex, line) in enumerate(f):  #loading the file into an np.array
             if bool(line) and line != "\n":
@@ -24,7 +24,7 @@ def task1(report: np.array):
     entry_comparator = sorted(list(np.unique(report)))
     test2 = int(list(report) == entry_comparator or list(report) == sorted(entry_comparator, reverse=True))
 
-    test_map = np.empty_like(report, dtype=np.int64)
+    test_map = np.empty_like(report[:-1], dtype=np.int64)
     mapped_list = list(map(test1, report[:-1], report[1:]))
 
     for entry_id, _ in enumerate(mapped_list):
@@ -41,20 +41,25 @@ def test1(entry: np.array):
 @njit(["int64(int32[:])"])
 def task2(report: np.array):
     out = 0
-    test_array = np.empty_like(report)
-    subtest_array1 = np.empty_like(report)
-    subtest_array2 = np.empty_like(report)
+    test_array = np.empty_like(report[:-1])
+    subtest_array1 = np.empty_like(report[:-1])
+    subtest_array2 = np.empty_like(report[:-1])
 
     def test2(entry1: np.int32, entry2: np.int32):
-        return (1 <= np.absolute(entry2 - entry1) <= 3) * np.sign(np.int32(entry2) - np.int32(entry1))
+        return (1 <= np.absolute(entry2 - entry1) <= 3) * np.sign(int(entry2) - int(entry1))
     
     def test3(test_array: np.array):
+        total_entries = len(test_array)
         condition1 = (test_array == 0).astype(np.int32)
         condition2 = (test_array == 1).astype(np.int32)
         condition3 = (test_array == -1).astype(np.int32)
-        if np.sum(condition1) + np.sum(condition2) + np.sum(condition3) <= 1:
-            return np.where((condition1 + condition2 + condition3) == 1)[0][0]
-
+        if np.sum(condition1) == 1 and (np.sum(condition2) == (total_entries - 1) or np.sum(condition3) == (total_entries - 1)):
+            return np.where((condition1) == 1)[0][0]
+        if np.sum(condition1) == 0 and (np.sum(condition2) == 1 or np.sum(condition3) == 1):
+            if np.sum(condition2) == 1:
+                return np.where((condition2) == 1)[0][0]
+            else:
+                return np.where((condition3) == 1)[0][0]
 
 
     test_map = list(map(test2, report[:-1], report[1:]))
@@ -62,13 +67,14 @@ def task2(report: np.array):
     for entry_id, _ in enumerate(test_map):
         test_array[entry_id] = test_map[entry_id]
 
-    index = int(test3(test_array))
+    index = test3(test_array)
+    if not (index is None): 
+        subtest_array1 = np.delete(report, int(index)).astype(int32)
+        subtest_array2 = np.delete(report, int(index) + 1).astype(int32)
+        subtest_array3 = np.delete(report, int(index) - 1).astype(int32)
+        print(subtest_array1, subtest_array2, subtest_array3, test1(subtest_array1) or test1(subtest_array2) or test1(subtest_array3))
 
-    if not (index is None):  # ERROR IN THIS FLOW CONTROL
-        subtest_array1 = np.delete(test_array, index).astype(int32)
-        subtest_array2 = np.delete(test_array, index + 1).astype(int32)
-
-        out = test1(subtest_array1) or test1(subtest_array2)
+        out = test1(subtest_array1) or test1(subtest_array2) or test1(subtest_array3)
 
     return out
 
@@ -81,7 +87,7 @@ def main():
 
     out1 = np.sum([task1(entry) for entry in report])
 
-    out2 = np.sum([0 if task1(entry) != 0 else task2(entry) for entry in report])
+    out2 = np.sum([1 if task1(entry) != 0 else task2(entry) for entry in report])
 
     return out1, out2
 
