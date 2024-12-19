@@ -53,9 +53,10 @@ def task2(report: np.array):
         condition1 = (test_array == 0).astype(np.int32)
         condition2 = (test_array == 1).astype(np.int32)
         condition3 = (test_array == -1).astype(np.int32)
+
         if np.sum(condition1) == 1 and (np.sum(condition2) == (total_entries - 1) or np.sum(condition3) == (total_entries - 1)):
             return np.where((condition1) == 1)[0][0]
-        if np.sum(condition1) == 0 and (np.sum(condition2) == 1 or np.sum(condition3) == 1):
+        if np.sum(condition1) <= 1 and (np.sum(condition2) == 1 or np.sum(condition3) == 1):
             if np.sum(condition2) == 1:
                 return np.where((condition2) == 1)[0][0]
             if np.sum(condition3) == 1:
@@ -74,8 +75,6 @@ def task2(report: np.array):
         subtest_array3 = np.delete(report, int(index) - 1).astype(int32)
 
         out = test1(subtest_array1) or test1(subtest_array2) or test1(subtest_array3)
-        if out == 0:
-            print(report, subtest_array1, subtest_array2, subtest_array3)
 
     return out
 
