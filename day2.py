@@ -58,7 +58,7 @@ def task2(report: np.array):
         if np.sum(condition1) == 0 and (np.sum(condition2) == 1 or np.sum(condition3) == 1):
             if np.sum(condition2) == 1:
                 return np.where((condition2) == 1)[0][0]
-            else:
+            if np.sum(condition3) == 1:
                 return np.where((condition3) == 1)[0][0]
 
 
