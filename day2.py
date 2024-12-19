@@ -68,13 +68,14 @@ def task2(report: np.array):
         test_array[entry_id] = test_map[entry_id]
 
     index = test3(test_array)
-    if not (index is None): 
+    if not (index is None):
         subtest_array1 = np.delete(report, int(index)).astype(int32)
         subtest_array2 = np.delete(report, int(index) + 1).astype(int32)
         subtest_array3 = np.delete(report, int(index) - 1).astype(int32)
-        print(subtest_array1, subtest_array2, subtest_array3, test1(subtest_array1) or test1(subtest_array2) or test1(subtest_array3))
 
         out = test1(subtest_array1) or test1(subtest_array2) or test1(subtest_array3)
+        if out == 0:
+            print(report, subtest_array1, subtest_array2, subtest_array3)
 
     return out
 
